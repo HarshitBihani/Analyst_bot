@@ -62,18 +62,18 @@ def call_gemini_with_retry(messages, attempts=4):
     """Serialized + retried Gemini call. Returns response or raises last error."""
     last_err = None
     with gemini_lock:
-        time.sleep(12)  # stay under free-tier RPM
+        time.sleep(5)  # 15 RPM headroom on gemini-3.5-flash-lite
         for attempt in range(attempts):
             try:
                 return client.chat.completions.create(
-                    model="gemini-3.5-flash",
+                    model="gemini-3.5-flash-lite",
                     messages=messages,
                     tools=TOOLS
                 )
             except Exception as e:
                 last_err = e
                 log_run({"warning": f"gemini attempt {attempt} failed: {e}"})
-                time.sleep(8 * (attempt + 1))
+                time.sleep(10 * (attempt + 1))
         raise last_err
 
 def process_message(chat_id, text):
