@@ -57,8 +57,9 @@ def process_message(chat_id, text):
     ]
 
     for _ in range(5):
+        # We use gemini-2.5-flash-lite here because it allows 15 RPM and 1,000 RPD on the free tier, avoiding the 429 RateLimitError
         response = client.chat.completions.create(
-            model="gemini-3.6-flash", 
+            model="gemini-2.5-flash-lite", 
             messages=messages,
             tools=[{
                 "type": "function",
