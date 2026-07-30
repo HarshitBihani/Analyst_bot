@@ -57,9 +57,11 @@ def process_message(chat_id, text):
     ]
 
     for _ in range(5):
-        # We use gemini-2.5-flash-lite here because it allows 15 RPM and 1,000 RPD on the free tier, avoiding the 429 RateLimitError
+        # 12-second delay to stay under the free tier Rate Limit (5 RPM)
+        time.sleep(12) 
+        
         response = client.chat.completions.create(
-            model="gemini-2.5-flash-lite", 
+            model="gemini-3.5-flash", 
             messages=messages,
             tools=[{
                 "type": "function",
@@ -90,15 +92,18 @@ def process_message(chat_id, text):
         else:
             break
             
-    final_text = msg.content.strip()
-    final_text = final_text.replace("```json", "").replace("```", "").strip()
-    
+    # Safely parse the final text and handle NoneTypes
     try:
-        parsed = json.loads(final_text)
-        if "answer" not in parsed:
-            parsed = {"answer": parsed}
-        parsed["log_url"] = f"{BASE_URL}/run.jsonl"
-        final_reply = json.dumps(parsed)
+        if msg and msg.content:
+            final_text = msg.content.strip()
+            final_text = final_text.replace("```json", "").replace("```", "").strip()
+            parsed = json.loads(final_text)
+            if "answer" not in parsed:
+                parsed = {"answer": parsed}
+            parsed["log_url"] = f"{BASE_URL}/run.jsonl"
+            final_reply = json.dumps(parsed)
+        else:
+            final_reply = json.dumps({"answer": "Error: Empty response", "log_url": f"{BASE_URL}/run.jsonl"})
     except:
         final_reply = json.dumps({"answer": "error parsing", "log_url": f"{BASE_URL}/run.jsonl"})
         
